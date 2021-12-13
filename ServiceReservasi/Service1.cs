@@ -15,17 +15,33 @@ namespace ServiceReservasi
         SqlConnection connection;
         SqlCommand com;
 
-        public string deletepemesanan(string IDPemensanan)
+        public string deletePemesanan(string IDPemesanan)
         {
-            throw new NotImplementedException();
+            string a = "gagal";
+            try
+            {
+                string sql = "DELETE FROM dbo.Pemesanan WHERE ID_Reservasi = '" + IDPemesanan + "' )";
+                connection = new SqlConnection(constring);
+                com = new SqlCommand(sql, connection);
+                connection.Open();
+                com.ExecuteNonQuery();
+                connection.Close();
+
+                a = "sukses";
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            return a;
         }
 
         public List<DetailLokasi> DetailLokasi()
         {
-            List<DetailLokasi> LokasiFull = new List<DetailLokasi>();
+            List<DetailLokasi> lokasiFull = new List<DetailLokasi>();
             try
             {
-                string sql = "SELECT ID_lokasi, Nama_lokasi, Deskripsi_full, Kuota from dbo.Lokasi";
+                string sql = "SELECT ID_Lokasi, Nama_Lokasi, Deskripsi_Singkat, Deskripsi_Full, Kuota FROM dbo.Lokasi";
                 connection = new SqlConnection(constring);
                 com = new SqlCommand(sql, connection);
                 connection.Open();
@@ -37,39 +53,36 @@ namespace ServiceReservasi
                     data.NamaLokasi = reader.GetString(1);
                     data.DeskripsiFull = reader.GetString(2);
                     data.Kuota = reader.GetInt32(3);
-                    LokasiFull.Add(data);
-
+                    lokasiFull.Add(data);
                 }
                 connection.Close();
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(e);
             }
-            return LokasiFull;
+            return lokasiFull;
         }
 
-        public string editpemesanan(string IDPemensanan, string NamaCustomer)
+        public string editPemesanan(string IDPemesanan, string NamaCustomer, string No_Telpon)
         {
-            throw new NotImplementedException();
-        }
-
-        public string GetData(int value)
-        {
-            return string.Format("You entered: {0}", value);
-        }
-
-        public CompositeType GetDataUsingDataContract(CompositeType composite)
-        {
-            if (composite == null)
+            string a = "gagal";
+            try
             {
-                throw new ArgumentNullException("composite");
+                string sql = "UPDATE dbo.Pemesanan SET Nama_Customer = '" + NamaCustomer + "', No_Telpon = '" + No_Telpon + "' WHERE ID_Reservasi = '" + IDPemesanan + "' )";
+                connection = new SqlConnection(constring);
+                com = new SqlCommand(sql, connection);
+                connection.Open();
+                com.ExecuteNonQuery();
+                connection.Close();
+
+                a = "sukses";
             }
-            if (composite.BoolValue)
+            catch (Exception e)
             {
-                composite.StringValue += "Suffix";
+                Console.WriteLine(e);
             }
-            return composite;
+            return a;
         }
 
         public string pemesanan(string IDPemesanan, string NamaCustomer, string NoTelpon, int JumlahPemesanan, string IDLokasi)
@@ -77,35 +90,61 @@ namespace ServiceReservasi
             string a = "gagal";
             try
             {
-                string sql = "INSERT INTO dbo.Pemesanan VALUES('" + IDPemesanan + "','" + NamaCustomer + "','" + NoTelpon + "'," + JumlahPemesanan + ",'" + IDLokasi + "')";
+                string sql = "INSERT INTO dbo.Pemesanan VALUES ('" + IDPemesanan + "', '" + NamaCustomer + "', '" + NoTelpon + "', '" + JumlahPemesanan + "', '" + IDLokasi + "')";
                 connection = new SqlConnection(constring);
                 com = new SqlCommand(sql, connection);
                 connection.Open();
                 com.ExecuteNonQuery();
                 connection.Close();
+
+                string sql2 = "UPDATE dbo.Lokasi SET Kuota = Kuota - " + JumlahPemesanan + " WHERE ID_Lokasi = '" + IDLokasi + "'";
+                connection = new SqlConnection(constring);
+                com = new SqlCommand(sql2, connection);
+                connection.Open();
+                com.ExecuteNonQuery();
+                connection.Close();
+
                 a = "sukses";
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(e);
             }
             return a;
         }
 
         public List<Pemesanan> Pemesanan()
         {
-            throw new NotImplementedException();
+            List<Pemesanan> pemesanans = new List<Pemesanan>();
+            try
+            {
+                string sql = "SELECT ID_Reservasi, Nama_Customer, No_Telpon, Jumlah_Pemesanan, Nama_Lokasi FROM dbo.Pemesanan JOIN dbo.Lokasi ON dbo.Pemesanan.ID_Lokasi = dbo.Lokasi.ID_Lokasi";
+                connection = new SqlConnection(constring);
+                com = new SqlCommand(sql, connection);
+                connection.Open();
+                SqlDataReader reader = com.ExecuteReader();
+                while (reader.Read())
+                {
+                    Pemesanan data = new Pemesanan();
+                    data.IDPemesanan = reader.GetString(0);
+                    data.NamaCustomer = reader.GetString(1);
+                    data.NoTelpon = reader.GetString(2);
+                    data.JumlahPemesanan = reader.GetInt32(3);
+                    data.Lokasi = reader.GetString(4);
+                    pemesanans.Add(data);
+                }
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            return pemesanans;
         }
 
         public List<CekLokasi> ReviewLokasi()
         {
             throw new NotImplementedException();
         }
-    }
-
-    public class CompositeType
-    {
-        public bool BoolValue { get; internal set; }
-        public string StringValue { get; internal set; }
     }
 }
